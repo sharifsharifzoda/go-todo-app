@@ -123,7 +123,7 @@ func (s *AuthService) CheckUser(user model.User) (model.User, error) {
 func (s *AuthService) GenerateToken(user model.User) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, &tokenClaims{
 		jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(2 * time.Minute).Unix(),
+			ExpiresAt: time.Now().Add(5 * time.Minute).Unix(),
 			IssuedAt:  time.Now().Unix(),
 		},
 		user.Id,
@@ -140,12 +140,19 @@ func (s *AuthService) ParseToken(tokenString string) (int, error) {
 		}
 		return []byte(os.Getenv("SECRET")), nil
 	})
+
 	if err != nil {
 		return 0, err
 	}
+
 	claims, ok := token.Claims.(*tokenClaims)
 	if !ok {
 		return 0, errors.New("invalid token claims")
 	}
+
+	if claims.ExpiresAt < time.Now().Unix() {
+		return 0, errors.New("token expired")
+	}
+
 	return claims.UserId, nil
 }

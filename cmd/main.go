@@ -26,13 +26,12 @@ func main() {
 		log.Fatalf("error while reading config file. error is %v", err.Error())
 	}
 
-	cfg := configs.DatabaseConnConfig{
-		Host:     viper.GetString("host"),
-		Port:     viper.GetString("port"),
-		User:     viper.GetString("user"),
-		Password: os.Getenv("db_password"),
-		Database: viper.GetString("dbname"),
+	var cfg configs.DatabaseConnConfig
+
+	if err := viper.Unmarshal(&cfg); err != nil {
+		log.Fatalf("Couldn't unmarshal the config into struct. error is %v", err.Error())
 	}
+	cfg.Password = os.Getenv("db_password")
 
 	conn, err := repository.GetDBConnection(cfg)
 	if err != nil {
@@ -71,5 +70,6 @@ func main() {
 func InitConfigs() error {
 	viper.AddConfigPath("configs") //адрес директории
 	viper.SetConfigName("config")  //имя файла
-	return viper.ReadInConfig()    //считывает config и сохраняет данные во внутренний объект viper
+	viper.SetConfigType("yml")
+	return viper.ReadInConfig() //считывает config и сохраняет данные во внутренний объект viper
 }

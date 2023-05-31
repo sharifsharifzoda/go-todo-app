@@ -11,10 +11,10 @@ func Init(db *sql.DB) {
 		CreateTasksTable,
 	}
 
-	for _, ddl := range DDls {
+	for i, ddl := range DDls {
 		_, err := db.Exec(ddl)
 		if err != nil {
-			log.Fatalf("failed to create tables due to: %s", err.Error())
+			log.Fatalf("failed to create table #%d due to: %s", i+1, err.Error())
 		}
 	}
 }

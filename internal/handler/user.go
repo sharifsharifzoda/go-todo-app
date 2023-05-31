@@ -76,8 +76,10 @@ func (h *Handler) signIn(c *gin.Context) {
 		return
 	}
 
-	c.SetSameSite(http.SameSiteLaxMode)
-	c.SetCookie("Authorization", token, 3600*24*30, "", "", false, true)
+	//c.SetSameSite(http.SameSiteLaxMode)
+	//c.SetCookie("Authorization", token, 3600*24*30, "", "", false, true)
+
+	c.Writer.Header().Set("Authorization", token)
 
 	c.JSON(http.StatusOK, gin.H{
 		"msg": "signed in",

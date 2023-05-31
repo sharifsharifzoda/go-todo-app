@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -18,7 +19,7 @@ import (
 //		Port:     "5432",
 //		User:     "alif",
 //		Password: "pass",
-//		Database: "alif_db",
+//		DbName: "alif_db",
 //	}
 //	conn, err := repository.GetDBConnection(cfg)
 //	if err != nil {
@@ -66,7 +67,7 @@ import (
 //		Port:     "5432",
 //		User:     "alif",
 //		Password: "pass",
-//		Database: "alif_db",
+//		DbName: "alif_db",
 //	}
 //	conn, err := repository.GetDBConnection(cfg)
 //	if err != nil {
@@ -128,6 +129,31 @@ func TestHandler_signUp(t *testing.T) {
 			},
 			expectedStatusCode:   201,
 			expectedResponseBody: `{"id":1}`,
+		},
+		{
+			name:      "Empty fields",
+			inputBody: `{"name":"","email":"","password":""}`,
+			inputUser: model.User{},
+			mockBehavior: func(s *mock_service.MockAuthorization, user model.User) {
+				s.EXPECT().ValidateUser(user).Return(fmt.Errorf("forbidden")).AnyTimes()
+			},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"error":"validate"}`,
+		},
+		{
+			name:      "Used Email",
+			inputBody: `{"name":"sharif","email":"sharif@gmail.com","password":"qwerty"}`,
+			inputUser: model.User{
+				Name:     "sharif",
+				Email:    "sharif@gmail.com",
+				Password: "qwerty",
+			},
+			mockBehavior: func(s *mock_service.MockAuthorization, user model.User) {
+				s.EXPECT().ValidateUser(user).Return(nil).AnyTimes()
+				s.EXPECT().IsEmailUsed(user.Email).Return(true).AnyTimes()
+			},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"error":"email is already created"}`,
 		},
 	}
 

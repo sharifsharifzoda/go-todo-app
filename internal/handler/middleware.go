@@ -4,24 +4,50 @@ import (
 	"errors"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 )
 
 func (h *Handler) tokenAuthMiddleware(c *gin.Context) {
-	cookie, err := c.Cookie("Authorization")
-	if err != nil {
+	//cookie, err := c.Cookie("Authorization")
+	//if err != nil {
+	//	c.JSON(http.StatusUnauthorized, gin.H{
+	//		"error": "not found any cookie",
+	//	})
+	//	return
+	//}
+
+	header := c.GetHeader("Authorization")
+
+	if header == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{
-			"error": "not found any cookie",
+			"reason": "empty auth header",
 		})
 		return
 	}
 
-	userId, err := h.Auth.ParseToken(cookie)
+	split := strings.Split(header, " ")
+	if len(split) != 2 || split[0] != "Alif" {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"reason": "invalid auth header",
+		})
+		return
+	}
+
+	if len(split[1]) == 0 {
+		c.JSON(http.StatusUnauthorized, gin.H{
+			"reason": "token is empty",
+		})
+		return
+	}
+
+	userId, err := h.Auth.ParseToken(split[1])
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error": err.Error(),
 		})
 		return
 	}
+
 	c.Set("userId", userId)
 }
 
