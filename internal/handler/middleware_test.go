@@ -33,6 +33,15 @@ func TestHandler_tokenAuthMiddleware(t *testing.T) {
 			expectedStatusCode:   200,
 			expectedResponseBody: "1",
 		},
+		{
+			name:                 "Empty header",
+			headerName:           "Authorization",
+			headerValue:          "",
+			token:                "",
+			mockBehavior:         func(s *mock_service.MockAuthorization, token string) {},
+			expectedStatusCode:   401,
+			expectedResponseBody: `{"reason":"empty auth header"}`,
+		},
 	}
 
 	for _, testCase := range testTable {
