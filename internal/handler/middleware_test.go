@@ -42,6 +42,15 @@ func TestHandler_tokenAuthMiddleware(t *testing.T) {
 			expectedStatusCode:   401,
 			expectedResponseBody: `{"reason":"empty auth header"}`,
 		},
+		{
+			name:                 "Invalid Bearer",
+			headerName:           "Authorization",
+			headerValue:          "alif token",
+			token:                "",
+			mockBehavior:         func(s *mock_service.MockAuthorization, token string) {},
+			expectedStatusCode:   401,
+			expectedResponseBody: `{"reason":"invalid auth header"}`,
+		},
 	}
 
 	for _, testCase := range testTable {

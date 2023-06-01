@@ -2,6 +2,7 @@ package handler
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/mock/gomock"
@@ -176,6 +177,86 @@ func TestHandler_signUp(t *testing.T) {
 			w := httptest.NewRecorder()
 			req := httptest.NewRequest("POST", "/sign-up",
 				bytes.NewBufferString(testCase.inputBody))
+
+			r.ServeHTTP(w, req)
+
+			assert.Equal(t, w.Code, testCase.expectedStatusCode)
+			assert.Equal(t, w.Body.String(), testCase.expectedResponseBody)
+		})
+	}
+}
+
+func TestHandler_signIn(t *testing.T) {
+	type mockBehavior func(s *mock_service.MockAuthorization, user model.User)
+
+	testTable := []struct {
+		name                 string
+		inputBody            string
+		inputUser            model.User
+		mockBehavior         mockBehavior
+		expectedStatusCode   int
+		expectedResponseBody string
+	}{
+		{
+			name:      "Ok",
+			inputBody: `{"email":"sharifov300@gmail.com","password":"pass"}`,
+			inputUser: model.User{
+				Email:    "sharifov300@gmail.com",
+				Password: "pass",
+			},
+			mockBehavior: func(s *mock_service.MockAuthorization, user model.User) {
+				s.EXPECT().GenerateToken(user).Return("token", nil).AnyTimes()
+				s.EXPECT().CheckUser(user).Return(user, nil).AnyTimes()
+				s.EXPECT().ValidateUser(user).Return(nil).AnyTimes()
+			},
+			expectedStatusCode:   200,
+			expectedResponseBody: `{"msg":"signed in"}`,
+		},
+		{
+			name:      "Empty fields",
+			inputBody: `{"email":"","password":""}`,
+			inputUser: model.User{
+				Email:    "",
+				Password: "",
+			},
+			mockBehavior: func(s *mock_service.MockAuthorization, user model.User) {
+				s.EXPECT().ValidateUser(user).Return(fmt.Errorf("forbidden")).AnyTimes()
+			},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"error":"validation"}`,
+		},
+		{
+			name:      "Invalid fields",
+			inputBody: `{"email":"sharifov300@gmail.com","password":"pass"}`,
+			inputUser: model.User{
+				Email:    "sharifov300@gmail.com",
+				Password: "pass",
+			},
+			mockBehavior: func(s *mock_service.MockAuthorization, user model.User) {
+				s.EXPECT().CheckUser(user).Return(user, errors.New("invalid email or password")).AnyTimes()
+				s.EXPECT().ValidateUser(user).Return(nil).AnyTimes()
+			},
+			expectedStatusCode:   400,
+			expectedResponseBody: `{"error":"invalid email or password"}`,
+		},
+	}
+
+	for _, testCase := range testTable {
+		t.Run(testCase.name, func(t *testing.T) {
+			c := gomock.NewController(t)
+			defer c.Finish()
+
+			auth := mock_service.NewMockAuthorization(c)
+			testCase.mockBehavior(auth, testCase.inputUser)
+
+			handler := NewHandler(auth, nil)
+
+			gin.SetMode(gin.ReleaseMode)
+			r := gin.New()
+			r.POST("/sign-in", handler.signIn)
+
+			w := httptest.NewRecorder()
+			req := httptest.NewRequest("POST", "/sign-in", bytes.NewBufferString(testCase.inputBody))
 
 			r.ServeHTTP(w, req)
 

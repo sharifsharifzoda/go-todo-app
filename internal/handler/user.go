@@ -55,7 +55,7 @@ func (h *Handler) signIn(c *gin.Context) {
 
 	if err := h.Auth.ValidateUser(user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "validate",
+			"error": "validation",
 		})
 		return
 	}
@@ -63,7 +63,7 @@ func (h *Handler) signIn(c *gin.Context) {
 	checkedUser, err := h.Auth.CheckUser(user)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": "invalid email or password",
+			"error": err.Error(),
 		})
 		return
 	}

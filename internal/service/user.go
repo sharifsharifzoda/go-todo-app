@@ -109,12 +109,12 @@ func (s *AuthService) CheckUser(user model.User) (model.User, error) {
 	u, err := s.repo.GetUser(user.Email)
 	if err != nil {
 		log.Println("no rows in result set")
-		return model.User{}, err
+		return model.User{}, errors.New("no rows in result set")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(user.Password)); err != nil {
 		log.Println("invalid email or password")
-		return model.User{}, err
+		return model.User{}, errors.New("invalid email or password")
 	}
 
 	return u, nil
