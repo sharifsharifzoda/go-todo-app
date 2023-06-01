@@ -12,7 +12,7 @@ import (
 
 func TestHandler_tokenAuthMiddleware(t *testing.T) {
 	type mockBehavior func(s *mock_service.MockAuthorization, token string)
-
+	//
 	testTable := []struct {
 		name                 string
 		headerName           string
