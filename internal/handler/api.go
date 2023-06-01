@@ -16,6 +16,13 @@ func (h *Handler) createTask(c *gin.Context) {
 		return
 	}
 
+	if task.Name == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "invalid task format provided",
+		})
+		return
+	}
+
 	userId, err := getUserId(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{

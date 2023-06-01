@@ -60,17 +60,17 @@ func (h *Handler) tokenAuthMiddleware(c *gin.Context) {
 func getUserId(c *gin.Context) (int, error) {
 	id, ok := c.Get("userId")
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "userId not found",
-		})
+		//c.JSON(http.StatusInternalServerError, gin.H{
+		//	"error": "userId not found",
+		//})
 		return 0, errors.New("userId not found")
 	}
 
 	idInt, ok := id.(int)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": "invalid type of userId",
-		})
+		//c.JSON(http.StatusInternalServerError, gin.H{
+		//	"error": "invalid type of userId",
+		//})
 		return 0, errors.New("invalid type of userId")
 	}
 
