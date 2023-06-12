@@ -3,17 +3,20 @@ package handler
 import (
 	"github.com/gin-gonic/gin"
 	"todo_sql_database/internal/service"
+	"todo_sql_database/logging"
 )
 
 type Handler struct {
-	Auth service.Authorization
-	Todo service.TodoTask
+	Auth   service.Authorization
+	Todo   service.TodoTask
+	Logger *logging.Logger
 }
 
-func NewHandler(auth service.Authorization, todo service.TodoTask) *Handler {
+func NewHandler(auth service.Authorization, todo service.TodoTask, log *logging.Logger) *Handler {
 	return &Handler{
-		Auth: auth,
-		Todo: todo,
+		Auth:   auth,
+		Todo:   todo,
+		Logger: log,
 	}
 }
 

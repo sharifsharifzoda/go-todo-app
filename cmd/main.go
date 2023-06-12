@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/spf13/viper"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,40 +14,44 @@ import (
 	"todo_sql_database/internal/handler"
 	"todo_sql_database/internal/repository"
 	"todo_sql_database/internal/service"
+	"todo_sql_database/logging"
 )
 
 func main() {
+	logging.InitLog()
+	logger := logging.GetLogger()
+
 	if err := godotenv.Load(); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	if err := InitConfigs(); err != nil {
-		log.Fatalf("error while reading config file. error is %v", err.Error())
+		logger.Fatalf("error while reading config file. error is %v", err.Error())
 	}
 
 	var cfg configs.DatabaseConnConfig
 
 	if err := viper.Unmarshal(&cfg); err != nil {
-		log.Fatalf("Couldn't unmarshal the config into struct. error is %v", err.Error())
+		logger.Fatalf("Couldn't unmarshal the config into struct. error is %v", err.Error())
 	}
-	cfg.Password = os.Getenv("db_password")
+	cfg.Password = os.Getenv("DB_PASSWORD")
 
 	conn, err := repository.GetDBConnection(cfg)
 	if err != nil {
-		log.Fatalf("error while opening DB. error: %s", err.Error())
+		logger.Fatalf("error while opening DB. error: %s", err.Error())
 	}
 	db.Init(conn)
 
 	//---------- Внедрение зависимостей-----------
-	newRepository := repository.NewRepository(conn)
-	newService := service.NewService(newRepository)
-	newHandler := handler.NewHandler(newService.Auth, newService.Todo)
+	newRepository := repository.NewRepository(conn, logger)
+	newService := service.NewService(newRepository, logger)
+	newHandler := handler.NewHandler(newService.Auth, newService.Todo, logger)
 	//--------------------------------------------
 
 	server := new(todo_sql.Server)
 	go func() {
 		if err := server.Run(os.Getenv("PORT"), newHandler.InitRoutes()); err != nil {
-			log.Fatalf("error while running http.server. Error is %s", err.Error())
+			logger.Fatalf("error while running http.server. Error is %s", err.Error())
 		}
 	}()
 	fmt.Printf("Server is listening to port: %s\n", os.Getenv("PORT"))
@@ -58,12 +61,12 @@ func main() {
 	<-ch
 
 	if err := conn.Close(); err != nil {
-		log.Fatalf("error while closing DB. Error: %s", err.Error())
+		logger.Fatalf("error while closing DB. Error: %s", err.Error())
 	}
 
 	fmt.Println("server is shutting down")
 	if err = server.Shutdown(context.Background()); err != nil {
-		log.Fatalf("error while shutting server down. Error: %s", err.Error())
+		logger.Fatalf("error while shutting server down. Error: %s", err.Error())
 	}
 }
 

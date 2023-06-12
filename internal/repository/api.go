@@ -2,17 +2,18 @@ package repository
 
 import (
 	"database/sql"
-	"log"
 	"todo_sql_database/db"
+	"todo_sql_database/logging"
 	"todo_sql_database/model"
 )
 
 type TodoTaskPostgres struct {
-	db *sql.DB
+	db     *sql.DB
+	logger *logging.Logger
 }
 
-func NewTodoTaskPostgres(db *sql.DB) *TodoTaskPostgres {
-	return &TodoTaskPostgres{db: db}
+func NewTodoTaskPostgres(db *sql.DB, log *logging.Logger) *TodoTaskPostgres {
+	return &TodoTaskPostgres{db: db, logger: log}
 }
 
 func (r *TodoTaskPostgres) CreateTask(userId int, task *model.Task) (int, error) {
@@ -30,7 +31,7 @@ func (r *TodoTaskPostgres) GetAll(userId int) (model.Tasks, error) {
 
 	rows, err := r.db.Query(db.GetAllTasks, userId)
 	if err != nil {
-		log.Printf("failed to get row. error is %v", err.Error())
+		r.logger.Printf("failed to get row. error is %v", err.Error())
 		return nil, err
 	}
 	defer rows.Close()
@@ -39,7 +40,7 @@ func (r *TodoTaskPostgres) GetAll(userId int) (model.Tasks, error) {
 		var t model.Task
 		err := rows.Scan(&t.Id, &t.Name, &t.Description, &t.Done, &t.IsActive, &t.Deadline, &t.Username)
 		if err != nil {
-			log.Println("failed to scan due to:", err.Error())
+			r.logger.Println("failed to scan due to:", err.Error())
 			return nil, err
 		}
 		tasks = append(tasks, t)

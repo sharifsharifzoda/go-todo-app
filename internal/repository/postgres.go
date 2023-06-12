@@ -11,7 +11,7 @@ import (
 func GetDBConnection(cfg configs.DatabaseConnConfig) (*sql.DB, error) {
 	dsn := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable TimeZone=Asia/Dushanbe",
 		cfg.Host, cfg.Port, cfg.User, cfg.Password, cfg.DbName)
-	//log.Print(dsn)
+	//logs.Print(dsn)
 	conn, err := sql.Open("postgres", dsn)
 	if err != nil {
 		return nil, err

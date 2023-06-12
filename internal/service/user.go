@@ -5,20 +5,21 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 	"os"
 	"strings"
 	"time"
 	"todo_sql_database/internal/repository"
+	"todo_sql_database/logging"
 	"todo_sql_database/model"
 )
 
 type AuthService struct {
-	repo repository.Authorization
+	repo   repository.Authorization
+	logger *logging.Logger
 }
 
-func NewAuthService(repo repository.Authorization) *AuthService {
-	return &AuthService{repo: repo}
+func NewAuthService(repo repository.Authorization, log *logging.Logger) *AuthService {
+	return &AuthService{repo: repo, logger: log}
 }
 
 type tokenClaims struct {
@@ -28,51 +29,51 @@ type tokenClaims struct {
 
 func (s *AuthService) ValidateUser(user model.User) error {
 	if len(user.Email) > 30 || len(user.Email) < 5 {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if len(user.Password) > 20 || len(user.Password) < 6 {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, "_") || strings.Contains(user.Password, "-") {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, "@") || strings.Contains(user.Password, "#") {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, "$") || strings.Contains(user.Password, "%") {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, "&") || strings.Contains(user.Password, "*") {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, "(") || strings.Contains(user.Password, ")") {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, ":") || strings.Contains(user.Password, ".") {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, "/") || strings.Contains(user.Password, `\`) {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, ",") || strings.Contains(user.Password, ";") {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, "?") || strings.Contains(user.Password, `"`) {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 	if strings.Contains(user.Password, "!") || strings.Contains(user.Password, "~") {
-		log.Println("forbidden")
+		s.logger.Debug("forbidden")
 		return fmt.Errorf("forbidden")
 	}
 
@@ -82,7 +83,7 @@ func (s *AuthService) ValidateUser(user model.User) error {
 func (s *AuthService) IsEmailUsed(email string) bool {
 	isUsed := s.repo.IsEmailUsed(email)
 	if isUsed {
-		log.Println("email is already created")
+		s.logger.Error("email is already created")
 		return true
 	}
 	return false
@@ -91,7 +92,7 @@ func (s *AuthService) IsEmailUsed(email string) bool {
 func (s *AuthService) CreateUser(user *model.User) (int, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println("failed to generate hash from password due to:", err.Error())
+		s.logger.Error("failed to generate hash from password due to:", err.Error())
 		return 0, err
 	}
 
@@ -99,7 +100,7 @@ func (s *AuthService) CreateUser(user *model.User) (int, error) {
 
 	id, err := s.repo.CreateUser(user)
 	if err != nil {
-		log.Println("failed to create user due to:", err.Error())
+		s.logger.Error("failed to create user due to:", err.Error())
 		return 0, err
 	}
 	return id, nil
@@ -108,12 +109,12 @@ func (s *AuthService) CreateUser(user *model.User) (int, error) {
 func (s *AuthService) CheckUser(user model.User) (model.User, error) {
 	u, err := s.repo.GetUser(user.Email)
 	if err != nil {
-		log.Println("no rows in result set")
+		s.logger.Error("no rows in result set")
 		return model.User{}, errors.New("no rows in result set")
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(user.Password)); err != nil {
-		log.Println("invalid email or password")
+		s.logger.Error("invalid email or password")
 		return model.User{}, errors.New("invalid email or password")
 	}
 

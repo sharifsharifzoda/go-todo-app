@@ -2,6 +2,7 @@ package repository
 
 import (
 	"database/sql"
+	"todo_sql_database/logging"
 	"todo_sql_database/model"
 )
 
@@ -22,11 +23,13 @@ type TodoTask interface {
 type Repository struct {
 	Authorization
 	TodoTask
+	Logger *logging.Logger
 }
 
-func NewRepository(db *sql.DB) *Repository {
+func NewRepository(db *sql.DB, log *logging.Logger) *Repository {
 	return &Repository{
 		Authorization: NewAuthPostgres(db),
-		TodoTask:      NewTodoTaskPostgres(db),
+		TodoTask:      NewTodoTaskPostgres(db, log),
+		Logger:        log,
 	}
 }

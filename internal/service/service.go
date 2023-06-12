@@ -2,6 +2,7 @@ package service
 
 import (
 	"todo_sql_database/internal/repository"
+	"todo_sql_database/logging"
 	"todo_sql_database/model"
 )
 
@@ -26,13 +27,15 @@ type TodoTask interface {
 }
 
 type Service struct {
-	Auth Authorization
-	Todo TodoTask
+	Auth   Authorization
+	Todo   TodoTask
+	Logger *logging.Logger
 }
 
-func NewService(repos *repository.Repository) *Service {
+func NewService(repos *repository.Repository, log *logging.Logger) *Service {
 	return &Service{
-		Auth: NewAuthService(repos.Authorization),
-		Todo: NewTodoTaskService(repos.TodoTask),
+		Auth:   NewAuthService(repos.Authorization, log),
+		Todo:   NewTodoTaskService(repos.TodoTask, log),
+		Logger: log,
 	}
 }
