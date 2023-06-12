@@ -69,7 +69,7 @@ func InitLog() {
 		},
 	})
 
-	//logger.SetLevel(logrus.DebugLevel)
+	//logger.SetLevel(logrus.DebugLevel)//
 
 	e = logrus.NewEntry(logger)
 }
