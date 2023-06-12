@@ -1,0 +1,2 @@
+time="2023-06-12T11:11:12+05:00" level=error msg="email is already created" func="todo_sql_database/internal/service.(*AuthService).IsEmailUsed" file="/home/sharif/web 3.0/todo(sql_database)/internal/service/user.go:86"
+time="2023-06-12T11:11:20+05:00" level=fatal msg="error while running http.server. Error is http: Server closed" func=main.main.func1 file="/home/sharif/web 3.0/todo(sql_database)/cmd/main.go:54"
