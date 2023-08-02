@@ -61,7 +61,7 @@ func TestHandler_tokenAuthMiddleware(t *testing.T) {
 			auth := mock_service.NewMockAuthorization(c)
 			testCase.mockBehavior(auth, testCase.token)
 
-			handler := NewHandler(auth, nil)
+			handler := NewHandler(auth, nil, nil)
 
 			gin.SetMode(gin.ReleaseMode)
 			r := gin.New()

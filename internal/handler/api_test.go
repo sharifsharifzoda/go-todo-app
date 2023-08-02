@@ -74,7 +74,7 @@ func TestHandler_createTask(t *testing.T) {
 			split := strings.Split(testCase.headerValue, " ")
 			testCase.mockBehavior(todo, auth, testCase.inputTask, split[1])
 
-			handler := NewHandler(auth, todo)
+			handler := NewHandler(auth, todo, nil)
 
 			gin.SetMode(gin.ReleaseMode)
 			r := gin.New()
@@ -141,7 +141,7 @@ func TestHandler_getTasks(t *testing.T) {
 
 			testCase.mockBehavior(auth, todo, split[1])
 
-			handler := NewHandler(auth, todo)
+			handler := NewHandler(auth, todo, nil)
 
 			gin.SetMode(gin.ReleaseMode)
 			r := gin.New()

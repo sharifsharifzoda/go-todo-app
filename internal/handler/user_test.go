@@ -167,7 +167,7 @@ func TestHandler_signUp(t *testing.T) {
 			testCase.mockBehavior(auth, testCase.inputUser)
 
 			//services := &service.Service{Auth: auth}
-			handler := NewHandler(auth, nil)
+			handler := NewHandler(auth, nil, nil)
 			//handler := Handler{services.Auth, services.Todo}
 
 			gin.SetMode(gin.ReleaseMode)
@@ -249,7 +249,7 @@ func TestHandler_signIn(t *testing.T) {
 			auth := mock_service.NewMockAuthorization(c)
 			testCase.mockBehavior(auth, testCase.inputUser)
 
-			handler := NewHandler(auth, nil)
+			handler := NewHandler(auth, nil, nil)
 
 			gin.SetMode(gin.ReleaseMode)
 			r := gin.New()
